@@ -38,6 +38,14 @@ tld = tldDisplay(0,tld); % initialize display
 
 for i = 2:length(tld.source.idx) % for every frame
     
+	if mod(i, tld.update_freq) == 0
+		%% Every tld.update_freq frame, initialize tracker with detection result from R-CNN
+		tld.bb(:, i) = [0; 0; 100; 100];
+		I = tld.source.idx(i); % get current index
+		tld.img{I} = img_get(tld.source,I); % grab frame from camera / load image
+		continue;
+	end
+	
     tld = tldProcessFrame(tld,i); % process frame i
     tldDisplay(1,tld,i); % display results on frame i
     
