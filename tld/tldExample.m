@@ -31,8 +31,16 @@ while 1
     if ~isempty(source), opt.source = source; break; end % check size
 end
 
-tld = tldInit(opt,[]); % train initial detector and initialize the 'tld' structure
-tld = tldDisplay(0,tld); % initialize display
+opt.source.bb = [nan;nan;nan;nan];
+if (~isnan(opt.source.bb(1)))
+	tld = tldInit(opt,[]); % train initial detector and initialize the 'tld' structure
+	tld = tldReInit(opt,tld,1);
+	tld = tldDisplay(0,tld); % initialize display
+else
+	tld = tldInit(opt,[]);
+	tld.handle = imshow(tld.img{1}.input,'initialmagnification','fit');
+    bb_draw(tld.source.bb);
+end
 
 % RUN-TIME ----------------------------------------------------------------
 
@@ -40,14 +48,21 @@ for i = 2:length(tld.source.idx) % for every frame
     
 	if mod(i, tld.update_freq) == 0
 		%% Every tld.update_freq frame, initialize tracker with detection result from R-CNN
-		tld.bb(:, i) = [0; 0; 100; 100];
+		tld.bb(:, i) = [126; 56; 188; 158];
 		I = tld.source.idx(i); % get current index
 		tld.img{I} = img_get(tld.source,I); % grab frame from camera / load image
 		continue;
 	end
 	
-    tld = tldProcessFrame(tld,i); % process frame i
-    tldDisplay(1,tld,i); % display results on frame i
+	%if isempty(tld.bb(:, i-1))
+	%	tld.bb{i} = [];
+	%end
+	
+	if ~isnan(tld.bb(1, i-1))
+		tld = tldReInit(opt,tld,i-1);
+		tld = tldProcessFrame(tld,i); % process frame i
+		tldDisplay(1,tld,i); % display results on frame i
+	end
     
     if finish % finish if any key was pressed
         if tld.source.camera
