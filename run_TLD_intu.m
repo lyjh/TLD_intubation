@@ -15,7 +15,7 @@
 % You should have received a copy of the GNU General Public License
 % along with TLD.  If not, see <http://www.gnu.org/licenses/>.
 
-addpath(genpath('.')); init_workspace; 
+addpath(genpath('.')); %init_workspace; 
 
 opt.source          = struct('camera',0,'input','intubation/','bb0',[]); % camera/directory swith, directory_name, initial_bounding_box (if empty, it will be selected by the user)
 opt.output          = '_output/'; mkdir(opt.output); % output directory that will contain bounding boxes + confidence

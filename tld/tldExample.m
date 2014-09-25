@@ -38,9 +38,38 @@ if (~isnan(opt.source.bb(1)))
 	tld = tldDisplay(0,tld); % initialize display
 else
 	tld = tldInit(opt,[]);
+	figure;
 	tld.handle = imshow(tld.img{1}.input,'initialmagnification','fit');
     bb_draw(tld.source.bb);
 end
+
+% CAFFE INITIALIZATION------------------------------------------------
+
+addpath('rp/matlab');
+addpath('rp/cmex');
+addpath('caffe')
+
+configFile = 'rp/config/rp_4segs.mat'; 
+configParams = LoadConfigFile(configFile);
+
+% caffe initialization
+use_gpu = true;
+input_batch_size = 250;
+input_size = 100;
+model_def_file = './caffe/vocnet_deploy.prototxt';
+model_file = '/mnt/neocortex/scratch/tsechiw/caffe/build/caffe_intunet_train_iter_140000';
+% set the ID of GPU being used, e.g., 1
+caffe('set_device', 1);
+caffe('init', model_def_file, model_file);
+
+if exist('use_gpu', 'var') && use_gpu
+  caffe('set_mode_gpu');
+else
+  caffe('set_mode_cpu');
+end
+
+% put into test mode
+caffe('set_phase_test');
 
 % RUN-TIME ----------------------------------------------------------------
 
@@ -48,9 +77,26 @@ for i = 2:length(tld.source.idx) % for every frame
     
 	if mod(i, tld.update_freq) == 0
 		%% Every tld.update_freq frame, initialize tracker with detection result from R-CNN
-		tld.bb(:, i) = [126; 56; 188; 158];
+	
+				
+		%tld.bb(:, i) = [126; 56; 188; 158];
 		I = tld.source.idx(i); % get current index
+		
+		im = imread(tld.source.files(I).name);
+		proposals = RP(im, configParams);
+		proposals = checkRegion(proposals, 12, 12);
+		scores_matrix = detect_cnn(im, proposals, input_size, input_batch_size, 5);
+		[score_epi, idx_epi] = max(scores_matrix(2,:)');
+		[score_voc, idx_voc] = max(scores_matrix(3,:)');
+		[score_tra, idx_tra] = max(scores_matrix(4,:)');
+		[score_car, idx_car] = max(scores_matrix(5,:)');
+		
+		scores = [score_epi; score_voc; score_tra; score_car];
+		idxs = [idx_epi; idx_voc; idx_tra; idx_car];
+		[max_score, max_idx] = max(scores);
+		bbox = proposals(idxs(max_idx), :);
 		tld.img{I} = img_get(tld.source,I); % grab frame from camera / load image
+		tld.bb(:,i) = bbox';
 		continue;
 	end
 	

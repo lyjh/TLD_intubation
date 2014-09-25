@@ -20,8 +20,8 @@ function patch = img_patch(img, bb, randomize,p_par)
 
 if nargin == 4 && randomize > 0
     
-    rand('state',randomize);
-    randn('state',randomize);
+    %rand('state',randomize);
+    %randn('state',randomize);
     
     NOISE = p_par.noise;
     ANGLE = p_par.angle;
