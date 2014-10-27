@@ -97,15 +97,9 @@ for i = 2:length(tld.source.idx) % for every frame
 		bbox = proposals(idxs(max_idx), :);
 		tld.img{I} = img_get(tld.source,I); % grab frame from camera / load image
 		tld.bb(:,i) = bbox';
-		continue;
-	end
+		tld = tldReInit(opt,tld,i);
 	
-	%if isempty(tld.bb(:, i-1))
-	%	tld.bb{i} = [];
-	%end
-	
-	if ~isnan(tld.bb(1, i-1))
-		tld = tldReInit(opt,tld,i-1);
+	elseif ~isnan(tld.bb(1, i-1))
 		tld = tldProcessFrame(tld,i); % process frame i
 		tldDisplay(1,tld,i); % display results on frame i
 	end
