@@ -21,28 +21,6 @@ global tld; % holds results and temporal variables
 
 % INITIALIZATION ----------------------------------------------------------
 
-opt.source = tldInitSource(opt.source); % select data source, camera/directory
-
-figure(2); set(2,'KeyPressFcn', @handleKey); % open figure for display of results
-finish = 0; function handleKey(~,~), finish = 1; end % by pressing any key, the process will exit
-
-while 1
-    source = tldInitFirstFrame(tld,opt.source,opt.model.min_win); % get initial bounding box, return 'empty' if bounding box is too small
-    if ~isempty(source), opt.source = source; break; end % check size
-end
-
-opt.source.bb = [nan;nan;nan;nan];
-if (~isnan(opt.source.bb(1)))
-	tld = tldInit(opt,[]); % train initial detector and initialize the 'tld' structure
-	tld = tldReInit(opt,tld,1);
-	tld = tldDisplay(0,tld); % initialize display
-else
-	tld = tldInit(opt,[]);
-	figure;
-	tld.handle = imshow(tld.img{1}.input,'initialmagnification','fit');
-    bb_draw(tld.source.bb);
-end
-
 % CAFFE INITIALIZATION------------------------------------------------
 
 addpath('rp/matlab');
@@ -70,6 +48,46 @@ end
 
 % put into test mode
 caffe('set_phase_test');
+
+% -------------------------------------------------------------------------------
+
+opt.source = tldInitSource(opt.source); % select data source, camera/directory
+
+% figure(2); set(2,'KeyPressFcn', @handleKey); % open figure for display of results
+% finish = 0; function handleKey(~,~), finish = 1; end % by pressing any key, the process will exit
+
+% while 1
+    % source = tldInitFirstFrame(tld,opt.source,opt.model.min_win); % get initial bounding box, return 'empty' if bounding box is too small
+    % if ~isempty(source), opt.source = source; break; end % check size
+% end
+
+opt.source.im0  = img_get(opt.source,opt.source.idx(1));
+im = imread(opt.source.files(opt.source.idx(1)).name);
+proposals = RP(im, configParams);
+proposals = checkRegion(proposals, 12, 12);
+scores_matrix = detect_cnn(im, proposals, input_size, input_batch_size, 5);
+[score_epi, idx_epi] = max(scores_matrix(2,:)');
+[score_voc, idx_voc] = max(scores_matrix(3,:)');
+[score_tra, idx_tra] = max(scores_matrix(4,:)');
+[score_car, idx_car] = max(scores_matrix(5,:)');
+
+scores = [score_epi; score_voc; score_tra; score_car];
+idxs = [idx_epi; idx_voc; idx_tra; idx_car];
+[max_score, max_idx] = max(scores);
+bbox = proposals(idxs(max_idx), :);
+opt.source.bb = bbox';
+
+%opt.source.bb = [nan;nan;nan;nan];
+if (~isnan(opt.source.bb(1)))
+	tld = tldInit(opt,[]); % train initial detector and initialize the 'tld' structure
+	tld = tldReInit(opt,tld,1);
+	tld = tldDisplay(0,tld); % initialize display
+else
+	tld = tldInit(opt,[]);
+	figure;
+	tld.handle = imshow(tld.img{1}.input,'initialmagnification','fit');
+    bb_draw(tld.source.bb);
+end
 
 % RUN-TIME ----------------------------------------------------------------
 
@@ -99,22 +117,11 @@ for i = 2:length(tld.source.idx) % for every frame
 		tld.bb(:,i) = bbox';
 		tld = tldReInit(opt,tld,i);
 	
-	elseif ~isnan(tld.bb(1, i-1))
+	else
 		tld = tldProcessFrame(tld,i); % process frame i
 		tldDisplay(1,tld,i); % display results on frame i
 	end
-    
-    if finish % finish if any key was pressed
-        if tld.source.camera
-            stoppreview(tld.source.vid);
-            closepreview(tld.source.vid);
-             close(1);
-        end
-        close(2);
-        bb = tld.bb; conf = tld.conf; % return results
-        return;
-    end
-    
+        
     if tld.plot.save == 1
         img = getframe;
         imwrite(img.cdata,[tld.output num2str(i,'%05d') '.png']);
