@@ -51,133 +51,143 @@ else
     
     tld = varargin{2};
     i = tld.source.idx(varargin{3});
+	
+	im = imread(tld.source.files(i).name);
+	clf;
+	imshow(im);
+	if ~isnan(tld.bb(1,i))
+		bbox = tld.bb(:,i);
+		rectangle('Position', [bbox(1), bbox(2), bbox(3)-bbox(1), bbox(4)-bbox(2)], 'linewidth',2,'edgecolor','r');
+	end
+
     
     
-    h = get(gca,'Children'); delete(h(1:end-1));
-    if nargin == 4, text(10,10,varargin{4},'color','white'); end
+    % h = get(gca,'Children'); delete(h(1:end-1));
+    % if nargin == 4, text(10,10,varargin{4},'color','white'); end
     
-    % Draw image
-    img = tld.img{i}.input;
-    [H,W] = size(img);
+    % % Draw image
+    % img = tld.img{i}.input;
+    [H,W,~] = size(im);
     
-    % Pex
-    if tld.plot.pex == 1
-        img = embedPex(img,tld);
-    end
+    % % Pex
+    % if tld.plot.pex == 1
+        % img = embedPex(img,tld);
+    % end
     
-    % Nex
-    if tld.plot.nex == 1
-        img = embedNex(img,tld);
-    end
+    % % Nex
+    % if tld.plot.nex == 1
+        % img = embedNex(img,tld);
+    % end
     
-    % Target
-    Size = 100;
-    if tld.plot.target && ~isnan(tld.bb(1,i))
-        bb = bb_rescale_relative(tld.bb(:,i),4*[1 1]);
-        patch = img_patch(tld.img{i}.input,bb);
-        patch = imresize(patch,[Size Size]);
-        img(1:Size,1:Size) = patch;
-    end
-    %rectangle('Position',[0 0 400 400],'edgecolor','k');
+    % % Target
+    % Size = 100;
+    % if tld.plot.target && ~isnan(tld.bb(1,i))
+        % bb = bb_rescale_relative(tld.bb(:,i),4*[1 1]);
+        % patch = img_patch(tld.img{i}.input,bb);
+        % patch = imresize(patch,[Size Size]);
+        % img(1:Size,1:Size) = patch;
+    % end
+    % %rectangle('Position',[0 0 400 400],'edgecolor','k');
     
-    % Replace
-    if tld.plot.replace && ~isnan(tld.bb(1,i))
-        bb = round(tld.bb(:,i));
-        if bb_isin(bb,size(tld.img{i}.input))
-            patch = imresize(tld.target,[bb(4)-bb(2)+1, bb(3)-bb(1)+1]);
-            img(bb(2):bb(4),bb(1):bb(3)) = patch;
-        end
-    end
-    
-    
-    set(tld.handle,'cdata',img); hold on;
-    
-    % Draw Detections
-    if tld.plot.dt && ~isempty(tld.dt{i})
-        % Fern detections
-        %bb = tld.dt{i}.bb(:,:); if tld.plot.confidence, bb = [bb; tld.dt{i}.conf1]; end
-        %bb_draw(bb,'edgecolor',0.5*[1 1 1]);
-        % NN detections
-        %idx = tld.dt{i}.conf1 > tld.model.thr_nn;
-        %bb = tld.dt{i}.bb(:,idx); if tld.plot.confidence, bb = [bb; tld.dt{i}.conf1(idx)]; end
-        %bb_draw(bb,'edgecolor','red');
-        cp = bb_center(tld.dt{i}.bb);
-        if ~isempty(cp)
-            plot(cp(1,:),cp(2,:),'.','color',0.25*[1 1 1]);
-        end
-        idx = tld.dt{i}.conf1 > tld.model.thr_nn;
-        cp = bb_center(tld.dt{i}.bb(:,idx));
-        if ~isempty(cp)
-        plot(cp(1,:),cp(2,:),'.','color','red');
-        end
-    end
+    % % Replace
+    % if tld.plot.replace && ~isnan(tld.bb(1,i))
+        % bb = round(tld.bb(:,i));
+        % if bb_isin(bb,size(tld.img{i}.input))
+            % patch = imresize(tld.target,[bb(4)-bb(2)+1, bb(3)-bb(1)+1]);
+            % img(bb(2):bb(4),bb(1):bb(3)) = patch;
+        % end
+    % end
     
     
-    % Draw Track
-    linewidth = 2; if tld.valid(i) == 1, linewidth = 4; end;
-    color = 'y'; %if tld.conf(i) > tld.model.thr_nn_valid, color = 'b'; end
+    % set(tld.handle,'cdata',img); hold on;
     
-    bb = tld.bb(:,i);
-    switch tld.plot.drawoutput
+    % % Draw Detections
+    % if tld.plot.dt && ~isempty(tld.dt{i})
+        % % Fern detections
+        % %bb = tld.dt{i}.bb(:,:); if tld.plot.confidence, bb = [bb; tld.dt{i}.conf1]; end
+        % %bb_draw(bb,'edgecolor',0.5*[1 1 1]);
+        % % NN detections
+        % %idx = tld.dt{i}.conf1 > tld.model.thr_nn;
+        % %bb = tld.dt{i}.bb(:,idx); if tld.plot.confidence, bb = [bb; tld.dt{i}.conf1(idx)]; end
+        % %bb_draw(bb,'edgecolor','red');
+        % cp = bb_center(tld.dt{i}.bb);
+        % if ~isempty(cp)
+            % plot(cp(1,:),cp(2,:),'.','color',0.25*[1 1 1]);
+        % end
+        % idx = tld.dt{i}.conf1 > tld.model.thr_nn;
+        % cp = bb_center(tld.dt{i}.bb(:,idx));
+        % if ~isempty(cp)
+        % plot(cp(1,:),cp(2,:),'.','color','red');
+        % end
+    % end
+    
+    
+    % % Draw Track
+    % linewidth = 2; if tld.valid(i) == 1, linewidth = 4; end;
+    % color = 'y'; %if tld.conf(i) > tld.model.thr_nn_valid, color = 'b'; end
+    
+    % bb = tld.bb(:,i);
+    % switch tld.plot.drawoutput
         
-        case 1
-            bb = bb_rescale_relative(bb_square(bb),[1.2 1.2]);
-            if tld.plot.confidence, bb = [bb; tld.conf(i)]; end
-            bb_draw(bb,'linewidth',linewidth,'edgecolor',color,'curvature',[1 1]);
-        case 2
-            cp = bb_center(bb);
-            plot(cp(1),cp(2),'.r','markersize',20);
-            if tld.plot.confidence, text(cp(1),cp(2),num2str(tld.conf(i))); end
-            %bb_draw(bb,'linewidth',linewidth,'edgecolor',color,'curvature',[1 1]);
-        case 3
-            if tld.plot.confidence, bb = [bb; tld.conf(i)]; end
-            bb_draw(bb,'linewidth',linewidth,'edgecolor',color,'curvature',[0 0]);
-    end
+        % case 1
+            % bb = bb_rescale_relative(bb_square(bb),[1.2 1.2]);
+            % if tld.plot.confidence, bb = [bb; tld.conf(i)]; end
+            % bb_draw(bb,'linewidth',linewidth,'edgecolor',color,'curvature',[1 1]);
+        % case 2
+            % cp = bb_center(bb);
+            % plot(cp(1),cp(2),'.r','markersize',20);
+            % if tld.plot.confidence, text(cp(1),cp(2),num2str(tld.conf(i))); end
+            % %bb_draw(bb,'linewidth',linewidth,'edgecolor',color,'curvature',[1 1]);
+        % case 3
+            % if tld.plot.confidence, bb = [bb; tld.conf(i)]; end
+            % bb_draw(bb,'linewidth',linewidth,'edgecolor',color,'curvature',[0 0]);
+    % end
     
-    % Info
+    % % Info
     
-    %string = ['#' num2str(i) ', fps:' num2str(1/toc,2) ', ' num2str(tld.control.maxbbox) '/' num2str(tld.nGrid) ', Fern: ' num2str(tld.model.thr_fern,4) ', NN: ' num2str(tld.model.thr_nn,3) '/' num2str(tld.model.thr_nn_valid,3)];
+    % %string = ['#' num2str(i) ', fps:' num2str(1/toc,2) ', ' num2str(tld.control.maxbbox) '/' num2str(tld.nGrid) ', Fern: ' num2str(tld.model.thr_fern,4) ', NN: ' num2str(tld.model.thr_nn,3) '/' num2str(tld.model.thr_nn_valid,3)];
     string = ['#' num2str(i) ', fps:' num2str(1/toc,3) ', ' num2str(tld.control.maxbbox) '/' num2str(tld.nGrid)];
     text(10,H-10,string,'color','white','backgroundcolor','k');
-    %if tld.control.update_detector
-    %    text(10,H-30,'Learning','color','white','backgroundcolor','k');
-    %end
+	drawnow;
+    % %if tld.control.update_detector
+    % %    text(10,H-30,'Learning','color','white','backgroundcolor','k');
+    % %end
     
-    if tld.trackerfailure(i)==1
-        text(10,H-30,'Tracker failure','color','white','backgroundcolor','k');
-    end
+    % if tld.trackerfailure(i)==1
+        % text(10,H-30,'Tracker failure','color','white','backgroundcolor','k');
+    % end
     
-    % Draw
-    if tld.plot.draw
-       plot(tld.draw(1,:),tld.draw(2,:),'r','linewidth',2);    
-    end
+    % % Draw
+    % if tld.plot.draw
+       % plot(tld.draw(1,:),tld.draw(2,:),'r','linewidth',2);    
+    % end
     
-       if tld.plot.pts
-           plot(tld.xFJ(1,:),tld.xFJ(2,:),'.');
-       end
+       % if tld.plot.pts
+           % plot(tld.xFJ(1,:),tld.xFJ(2,:),'.');
+       % end
     
        
-    if tld.plot.help
+    % if tld.plot.help
         
-        k = 12;
-        text(10,1*k,'n ... shows negative examples in online model (default on)');
-        text(10,2*k,'p ... shows positive examples in online model (default on)');
-        text(10,3*k,'i ... initialization of different target');
-        text(10,4*k,'c ... show confidence score (default on)');
-        text(10,5*k,'o ... show output as circle/dot/no output (default circle)');
-        text(10,6*k,'d ... show detections (default on)');
-        text(10,7*k,'t ... show target in top left corner (default off)');
-        text(10,8*k,'r ... replace target with first patch (default off)');
-        text(10,9*k,'# ... draw trajectory of target (default off)');
-        text(10,10*k,'1 ... mode without learning');
-        text(10,11*k,'2 ... mode with learning');
-        text(10,12*k,'q ... finish application');
-        text(10,13*k,'space ... save current image');
+        % k = 12;
+        % text(10,1*k,'n ... shows negative examples in online model (default on)');
+        % text(10,2*k,'p ... shows positive examples in online model (default on)');
+        % text(10,3*k,'i ... initialization of different target');
+        % text(10,4*k,'c ... show confidence score (default on)');
+        % text(10,5*k,'o ... show output as circle/dot/no output (default circle)');
+        % text(10,6*k,'d ... show detections (default on)');
+        % text(10,7*k,'t ... show target in top left corner (default off)');
+        % text(10,8*k,'r ... replace target with first patch (default off)');
+        % text(10,9*k,'# ... draw trajectory of target (default off)');
+        % text(10,10*k,'1 ... mode without learning');
+        % text(10,11*k,'2 ... mode with learning');
+        % text(10,12*k,'q ... finish application');
+        % text(10,13*k,'space ... save current image');
         
-    end
+    % end
     
     
-    drawnow;
+    % drawnow;
     tic;
     
     % Save
