@@ -14,7 +14,6 @@ function score_matrix = detect_cnn(im, proposals, input_size, batch_size, num_cl
 	imgs = prepareImgs(im, proposals, input_size, N);
 	score_matrix = zeros(num_class, batch_size*epoch);
 	
-	tic;
 	for e = 1:epoch
 		input_data = zeros(input_size, input_size, 3, batch_size, 'single');
 		start = (e-1)*batch_size + 1;
@@ -27,7 +26,6 @@ function score_matrix = detect_cnn(im, proposals, input_size, batch_size, num_cl
 		scores = caffe('forward', {input_data});
 		score_matrix(:, (e-1)*batch_size+1:e*batch_size) = reshape(scores{1}, num_class, batch_size);
 	end
-	toc;
 	score_matrix = score_matrix(:,1:N);
 end
 

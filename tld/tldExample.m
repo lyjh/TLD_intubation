@@ -35,9 +35,9 @@ use_gpu = true;
 input_batch_size = 250;
 input_size = 100;
 model_def_file = './caffe/vocnet_deploy.prototxt';
-model_file = '/mnt/neocortex/scratch/tsechiw/caffe/build/caffe_intunet_train_iter_140000';
+model_file = './caffe/caffe_intunet_train_iter_140000';
 % set the ID of GPU being used, e.g., 1
-caffe('set_device', 1);
+caffe('set_device', 0);
 caffe('init', model_def_file, model_file);
 
 if exist('use_gpu', 'var') && use_gpu
@@ -94,6 +94,7 @@ end
 for i = 2:length(tld.source.idx) % for every frame
     
 	if mod(i, tld.update_freq) == 0
+		tic		
 		%% Every tld.update_freq frame, initialize tracker with detection result from R-CNN
 	
 				
@@ -116,6 +117,7 @@ for i = 2:length(tld.source.idx) % for every frame
 		tld.img{I} = img_get(tld.source,I); % grab frame from camera / load image
 		tld.bb(:,i) = bbox';
 		tld = tldReInit(opt,tld,i);
+		toc
 	
 	else
 		tld = tldProcessFrame(tld,i); % process frame i

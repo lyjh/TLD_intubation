@@ -19,7 +19,7 @@ addpath(genpath('.')); %init_workspace;
 
 opt.source          = struct('camera',0,'input','intubation/','bb0',[]); % camera/directory swith, directory_name, initial_bounding_box (if empty, it will be selected by the user)
 opt.output          = '_output/'; mkdir(opt.output); % output directory that will contain bounding boxes + confidence
-opt.update_freq		= 50; % how many frames between two detections
+opt.update_freq		= 45; % how many frames between two detections
 
 min_win             = 24; % minimal size of the object's bounding box in the scanning grid, it may significantly influence speed of TLD, set it to minimal size of the object
 patchsize           = [15 15]; % size of normalized patch in the object detector, larger sizes increase discriminability, must be square
